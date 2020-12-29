@@ -1,0 +1,14 @@
+* { margin: 0;padding: 0;box-sizing: border-box; }
+li { list-style: none; }
+
+#app {
+  display: flex;
+  height: 560px;
+  width: 560px;
+  flex-wrap: wrap;
+}
+
+#app div {
+  height: 70px;
+  width: 70px;
+}
