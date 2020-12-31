@@ -13,21 +13,36 @@
   let score = 0;
   const scoreDisplay = document.querySelector('.score');
 
+  const getRandomColor = () => Math.floor(Math.random() * candyColors.length);
+  const addScore = (num) => {
+    scoreDisplay.innerHTML = score += num;
+  }
+  const getInvalidIndexes = (length) => {
+    const arr = [];
+
+    for (let i = 1; i <= width; i++) {
+      for (let j = 1; j < length; j++) {
+        arr.push(i * 8 - j);
+      }
+    }
+
+    return arr;
+  }
+
   // Create Board
   const createBoard = () => {
     for (let i = 0; i < width * width; i++) {
       const square = document.createElement('div');
       square.setAttribute('draggable', true);
       square.setAttribute('id', `${i}`);
-      let randomColor = Math.floor(Math.random() * candyColors.length);
+      const randomColor = getRandomColor();
       square.className = candyColors[randomColor];
       app.appendChild(square);
       squares.push(square);
     }
   }
 
-  // Drag candy
-  const applyEvent = () => {
+  const addEvent = () => {
     squares.forEach(square => {
       square.ondragstart = dragStart;
       square.ondragend = dragEnd;
@@ -78,106 +93,81 @@
   }
 
   const moveDown = () => {
-    for (let i = 0; i < 55; i++) {
-      if (squares[i + width].className === '') {
-        squares[i + width].className = squares[i].className;
-        squares[i].className = '';
+    squares.forEach((square, idx) => {
+      const firstRow = [0,1,2,3,4,5,6,7];
+      const isFirstRow = firstRow.includes(idx);
 
-        const firstRow = [0,1,2,3,4,5,6,7];
-        const isFirstRow = firstRow.includes(i);
-
-        if (isFirstRow && squares[i].className === '') {
-          let randomColor = Math.floor(Math.random() * candyColors.length);
-          squares[i].className = candyColors[randomColor];
+      if (square.className === '') {
+        if (isFirstRow) {
+          const randomColor = getRandomColor();
+          square.className = candyColors[randomColor];
+        } else {
+          square.className = squares[idx - width].className;
+          squares[idx - width].className = '';
         }
       }
-    }
+    });
   }
 
-  const checkRowForFour = () => {
-    for (let i = 0; i < 60; i++) {
-      let rowOfFour = [i, i + 1, i + 2, i + 4];
-      let deciedColor = squares[i].className;
-      const isBlank = squares[i].className === '';
+  const checkRow = (length) => {
+    const invalid = getInvalidIndexes(length);
+    let rows = [];
 
-      const notValid = [5, 6, 7, 13, 14, 15, 21, 22, 23, 29, 30, 31, 37, 38, 39, 45, 46, 47, 53, 54, 55];
+    for (let i = 0; i < width * width - length + 1; i++) {
+      rows = Array(length).fill().map((_, idx) => i + idx);
+      const deciedColor = squares[i].className;
+      const isBlank = deciedColor === '';
 
-      if (notValid.includes(i)) {
+      if (invalid.includes(i)) {
         continue;
       }
 
-      if (rowOfFour.every(idx => squares[idx].className === deciedColor && !isBlank)) {
-        score += 4;
-        scoreDisplay.innerHTML = score;
-        rowOfFour.forEach(idx => {
+      if (!isBlank && rows.every(idx => squares[idx].className === deciedColor)) {
+        addScore(length);
+
+        rows.forEach(idx => {
           squares[idx].className = '';
         });
+
+        return false;
       }
     }
+
+    return true;
+  }
+  const checkColumn = (length) => {
+    for (let i = 0; i < width * (width - length + 1); i++) {
+      const columns = Array(length).fill().map((_, idx) => i + (width * idx));
+      const deciedColor = squares[i].className;
+      const isBlank = deciedColor === '';
+
+      if (!isBlank && columns.every(idx => squares[idx].className === deciedColor)) {
+        addScore(length);
+
+        columns.forEach(idx => {
+          squares[idx].className = '';
+        });
+
+        return false;
+      }
+    }
+
+    return true;
   }
 
-  const checkColumnForFour = () => {
-    for (let i = 0; i < 35; i++) {
-      let columnOfFour = [i, i + width, i + width * 2, i + width * 3];
-      let deciedColor = squares[i].className;
-      const isBlank = squares[i].className === '';
-
-      if (columnOfFour.every(idx => squares[idx].className === deciedColor && !isBlank)) {
-        score += 3;
-        scoreDisplay.innerHTML = score;
-        columnOfFour.forEach(idx => {
-          squares[idx].className = '';
-        });
-      }
-    }
-  }
-  const checkRowForThree = () => {
-    for (let i = 0; i < 61; i++) {
-      let rowOfThree = [i, i + 1, i + 2];
-      let deciedColor = squares[i].className;
-      const isBlank = squares[i].className === '';
-
-      const notValid = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55];
-
-      if (notValid.includes(i)) {
-        continue;
-      }
-
-      if (rowOfThree.every(idx => squares[idx].className === deciedColor && !isBlank)) {
-        score += 3;
-        scoreDisplay.innerHTML = score;
-        rowOfThree.forEach(idx => {
-          squares[idx].className = '';
-        });
-      }
-    }
-  }
-
-  const checkColumnForThree = () => {
-    for (let i = 0; i < 47; i++) {
-      let columnOfThree = [i, i + width, i + width * 2];
-      let deciedColor = squares[i].className;
-      const isBlank = squares[i].className === '';
-
-      if (columnOfThree.every(idx => squares[idx].className === deciedColor && !isBlank)) {
-        score += 3;
-        scoreDisplay.innerHTML = score;
-        columnOfThree.forEach(idx => {
-          squares[idx].className = '';
-        });
-      }
-    }
+  const checkCandies = () => {
+    checkRow(4);
+    checkColumn(4);
+    checkRow(3);
+    checkColumn(3);
   }
 
   window.onload = () => {
     createBoard();
-    applyEvent();
+    addEvent();
 
     setInterval(() => {
-      checkRowForFour();
-      checkColumnForFour();
-      checkRowForThree();
-      checkColumnForThree();
+      checkCandies();
       moveDown();
     }, 100);
   };
