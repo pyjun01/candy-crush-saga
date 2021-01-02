@@ -156,6 +156,8 @@
   }
 
   const checkCandies = () => {
+    checkRow(5);
+    checkColumn(5);
     checkRow(4);
     checkColumn(4);
     checkRow(3);
