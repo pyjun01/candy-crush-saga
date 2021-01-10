@@ -109,6 +109,25 @@
     });
   }
 
+  const checkSquare = () => {
+    for(let i = 0; i < width - 1; i++) {
+      for(let j = 0; j < width - 1; j++) {
+        const idxs = [i + j, i + j + 1, i + j + width, i + j + width + 1];
+        const deciedColor = squares[idxs[0]].className;
+        const isBlank = deciedColor === '';
+
+        if (!isBlank && idxs.every(idx => squares[idx].className === deciedColor)) {
+          addScore(4);
+
+          idxs.forEach(idx => {
+            squares[idx].className = '';
+          });
+
+          return false;
+        }
+      }
+    }
+  }
   const checkRow = (length) => {
     const invalid = getInvalidIndexes(length);
     let rows = [];
@@ -156,6 +175,7 @@
   }
 
   const checkCandies = () => {
+    checkSquare();
     checkRow(5);
     checkColumn(5);
     checkRow(4);
